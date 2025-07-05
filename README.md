@@ -8,6 +8,7 @@ A Kubernetes-native worker service for automatically synchronizing AI models fro
 ## 🎯 功能特色
 
 - **自動化同步**: 監聽 S3 事件，自動下載和更新模型檔案
+- **手動觸發同步**: HTTP API 端點支援手動觸發全量同步
 - **智能過濾**: 處理模型檔案和配置檔案 (.pth, .bin, .onnx, .json, .txt 等)
 - **原子性操作**: 確保檔案更新的一致性和完整性
 - **健康監控**: 完整的健康檢查和監控指標
@@ -181,6 +182,11 @@ aws ecr create-repository \
 - `/live` - Kubernetes liveness probe  
 - `/metrics` - 詳細監控指標
 
+### 手動同步端點
+
+- `POST /sync/full` - 觸發全量模型同步
+- `GET /sync/status` - 查詢同步狀態
+
 ### 監控指標
 
 - 處理訊息數量和成功率
@@ -281,6 +287,45 @@ docker build -t worker-model-sync-tts:1.0.0 .
   "cpu": {...},
   "processCount": 42,
   "healthStatus": "healthy"
+}
+```
+
+### 模型同步 API
+
+#### POST /sync/full
+觸發全量模型同步，掃描 S3 存儲桶中所有模型檔案
+
+**請求範例:**
+```bash
+curl -X POST http://localhost:8080/sync/full
+```
+
+**回應範例:**
+```json
+{
+  "success": true,
+  "message": "Full sync completed successfully",
+  "data": {
+    "totalModels": 15,
+    "syncedModels": 3,
+    "errors": [],
+    "duration": 45000
+  }
+}
+```
+
+#### GET /sync/status  
+查詢當前同步狀態
+
+**回應範例:**
+```json
+{
+  "service": {
+    "status": "healthy",
+    "uptime": 3600,
+    "lastProcessed": "2024-01-01T11:59:00Z"
+  },
+  "metrics": {...}
 }
 ```
 

@@ -1,4 +1,4 @@
-import { S3Client, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, GetObjectCommand, HeadObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import fs from 'fs-extra';
 import { pipeline } from 'stream/promises';
 import { Readable } from 'stream';
@@ -204,6 +204,43 @@ export class S3Service {
     } catch (error) {
       logger.error(`Error checking if file should update: ${error.message}`, { s3Key, localPath, error });
       return true; // 錯誤時選擇更新
+    }
+  }
+
+  /**
+   * 列出 S3 存儲桶中的所有模型檔案
+   */
+  async listAllModels(): Promise<string[]> {
+    try {
+      const models: string[] = [];
+      let continuationToken: string | undefined;
+
+      do {
+        const command = new ListObjectsV2Command({
+          Bucket: this.bucketName,
+          ContinuationToken: continuationToken,
+          MaxKeys: 1000
+        });
+
+        const response = await this.s3Client.send(command);
+        
+        if (response.Contents) {
+          for (const object of response.Contents) {
+            if (object.Key && FileValidator.isModelFile(object.Key)) {
+              models.push(object.Key);
+            }
+          }
+        }
+
+        continuationToken = response.NextContinuationToken;
+      } while (continuationToken);
+
+      logger.info(`Found ${models.length} model files in S3 bucket: ${this.bucketName}`);
+      return models;
+      
+    } catch (error) {
+      logger.error(`Error listing models from S3: ${error.message}`, { error });
+      throw error;
     }
   }
 }

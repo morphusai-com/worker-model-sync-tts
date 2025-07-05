@@ -1,118 +1,102 @@
-import express from 'express';
 import logger from '../utils/logger';
 
 export class HealthCheckService {
-  private app = express();
   private lastProcessedTime: Date | null = null;
   private startTime: Date;
   private isHealthy: boolean = true;
 
   constructor() {
     this.startTime = new Date();
-    this.setupRoutes();
   }
 
   /**
-   * 設定健康檢查路由
+   * 獲取健康狀態資訊
    */
-  private setupRoutes(): void {
-    // 基本健康檢查
-    this.app.get('/health', (req, res) => {
-      const healthData = {
-        status: this.isHealthy ? 'healthy' : 'unhealthy',
-        uptime: Math.floor(process.uptime()),
-        timestamp: new Date().toISOString(),
-        memory: process.memoryUsage(),
-        lastProcessed: this.lastProcessedTime ? this.lastProcessedTime.toISOString() : null,
-        timeSinceLastProcess: this.lastProcessedTime 
-          ? Date.now() - this.lastProcessedTime.getTime() 
-          : null
-      };
+  getHealth(): {
+    status: string;
+    uptime: number;
+    timestamp: string;
+    memory: NodeJS.MemoryUsage;
+    lastProcessed: string | null;
+    timeSinceLastProcess: number | null;
+  } {
+    const healthData = {
+      status: this.isHealthy ? 'healthy' : 'unhealthy',
+      uptime: Math.floor(process.uptime()),
+      timestamp: new Date().toISOString(),
+      memory: process.memoryUsage(),
+      lastProcessed: this.lastProcessedTime ? this.lastProcessedTime.toISOString() : null,
+      timeSinceLastProcess: this.lastProcessedTime 
+        ? Date.now() - this.lastProcessedTime.getTime() 
+        : null
+    };
 
-      // 如果超過 10 分鐘沒有處理訊息，標記為不健康
-      const maxIdleTime = 10 * 60 * 1000; // 10 分鐘
-      if (this.lastProcessedTime && Date.now() - this.lastProcessedTime.getTime() > maxIdleTime) {
-        this.isHealthy = false;
-        healthData.status = 'unhealthy';
-      }
-
-      const statusCode = this.isHealthy ? 200 : 503;
-      res.status(statusCode).json(healthData);
-    });
-
-    // 準備就緒檢查 (Kubernetes readiness probe)
-    this.app.get('/ready', (req, res) => {
-      // 檢查環境變數
-      const requiredEnvVars = [
-        'AWS_ACCESS_KEY_ID',
-        'AWS_SECRET_ACCESS_KEY',
-        'AWS_REGION',
-        'S3_BUCKET_NAME',
-        'SQS_UPDATE_QUEUE_URL'
-      ];
-
-      const missingEnvVars = requiredEnvVars.filter(env => !process.env[env]);
-
-      if (missingEnvVars.length > 0) {
-        return res.status(503).json({
-          status: 'not_ready',
-          message: 'Missing required environment variables',
-          missingEnvVars
-        });
-      }
-
-      res.json({
-        status: 'ready',
-        timestamp: new Date().toISOString(),
-        startTime: this.startTime.toISOString()
-      });
-    });
-
-    // 存活檢查 (Kubernetes liveness probe)
-    this.app.get('/live', (req, res) => {
-      res.json({
-        status: 'alive',
-        timestamp: new Date().toISOString(),
-        uptime: Math.floor(process.uptime())
-      });
-    });
-
-    // 詳細指標 (用於監控)
-    this.app.get('/metrics', (req, res) => {
-      const metrics = {
-        timestamp: new Date().toISOString(),
-        uptime: Math.floor(process.uptime()),
-        memory: process.memoryUsage(),
-        cpu: process.cpuUsage(),
-        lastProcessed: this.lastProcessedTime ? this.lastProcessedTime.toISOString() : null,
-        processCount: this.getProcessCount(),
-        healthStatus: this.isHealthy ? 'healthy' : 'unhealthy',
-        version: process.env.npm_package_version || '1.0.0',
-        nodeVersion: process.version,
-        platform: process.platform,
-        arch: process.arch
-      };
-
-      res.json(metrics);
-    });
-
-    // 健康狀態切換 (僅用於測試)
-    if (process.env.NODE_ENV !== 'production') {
-      this.app.post('/health/toggle', (req, res) => {
-        this.isHealthy = !this.isHealthy;
-        logger.info(`Health status toggled to: ${this.isHealthy ? 'healthy' : 'unhealthy'}`);
-        res.json({ status: this.isHealthy ? 'healthy' : 'unhealthy' });
-      });
+    // 如果超過 10 分鐘沒有處理訊息，標記為不健康
+    const maxIdleTime = 10 * 60 * 1000; // 10 分鐘
+    if (this.lastProcessedTime && Date.now() - this.lastProcessedTime.getTime() > maxIdleTime) {
+      this.isHealthy = false;
+      healthData.status = 'unhealthy';
     }
+
+    return healthData;
+  }
+
+  /**
+   * 獲取詳細指標
+   */
+  getMetrics(): {
+    timestamp: string;
+    uptime: number;
+    memory: NodeJS.MemoryUsage;
+    cpu: NodeJS.CpuUsage;
+    lastProcessed: string | null;
+    processCount: number;
+    healthStatus: string;
+    version: string;
+    nodeVersion: string;
+    platform: string;
+    arch: string;
+  } {
+    return {
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor(process.uptime()),
+      memory: process.memoryUsage(),
+      cpu: process.cpuUsage(),
+      lastProcessed: this.lastProcessedTime ? this.lastProcessedTime.toISOString() : null,
+      processCount: this.getProcessCount(),
+      healthStatus: this.isHealthy ? 'healthy' : 'unhealthy',
+      version: process.env.npm_package_version || '1.0.0',
+      nodeVersion: process.version,
+      platform: process.platform,
+      arch: process.arch
+    };
+  }
+
+  /**
+   * 檢查是否準備就緒
+   */
+  isReady(): { ready: boolean; missingEnvVars?: string[] } {
+    const requiredEnvVars = [
+      'AWS_ACCESS_KEY_ID',
+      'AWS_SECRET_ACCESS_KEY',
+      'AWS_REGION',
+      'S3_BUCKET_NAME',
+      'SQS_UPDATE_QUEUE_URL'
+    ];
+
+    const missingEnvVars = requiredEnvVars.filter(env => !process.env[env]);
+
+    return {
+      ready: missingEnvVars.length === 0,
+      missingEnvVars: missingEnvVars.length > 0 ? missingEnvVars : undefined
+    };
   }
 
   /**
    * 啟動健康檢查服務
    */
-  start(port: number = 8080): void {
-    this.app.listen(port, '0.0.0.0', () => {
-      logger.info(`🏥 Health check service running on port ${port}`);
-    });
+  start(): void {
+    logger.info('🏥 Health check service initialized');
   }
 
   /**

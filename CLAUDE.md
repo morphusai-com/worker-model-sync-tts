@@ -10,45 +10,61 @@ Worker Model Sync TTS is a standalone Kubernetes-native service for automaticall
 
 ### Local Development
 ```bash
-npm install         # Install dependencies
-npm run build       # Compile TypeScript
-npm start           # Production mode
-npm run dev         # Development with hot reload
-npm test            # Run tests
-npm run lint        # Run ESLint
+make install        # Install dependencies
+make build          # Compile TypeScript  
+make start          # Production mode
+make dev            # Development with hot reload
+make test           # Run tests
+make lint           # Run ESLint
+
+# Alternative: use npm directly
+npm install && npm run build && npm start
 ```
 
 ### Docker Operations
 ```bash
-# Build Docker image
-docker build -t worker-model-sync-tts:latest .
+make docker-build   # Build Docker image
+make docker-run     # Run locally with Docker
 
-# Run locally with Docker
+# Alternative: use docker directly
+docker build -t worker-model-sync-tts:latest .
 docker run -p 8080:8080 worker-model-sync-tts:latest
 ```
 
 ### Kubernetes Deployment
 ```bash
-# Deploy to development environment
+make deploy-dev     # Deploy to development environment
+make deploy-prod    # Deploy to production environment
+make deploy-dry-run # Dry run (view configuration only)
+
+# Alternative: use deploy script directly
 ./deploy.sh -e dev -b
-
-# Deploy to production environment  
 ./deploy.sh -e prod -b -p
-
-# Dry run (view configuration only)
 ./deploy.sh -e dev -d
 ```
 
 ### Testing
 ```bash
 # Health checks
-curl http://localhost:8080/health    # Overall health status
-curl http://localhost:8080/ready     # Readiness probe
-curl http://localhost:8080/live      # Liveness probe
-curl http://localhost:8080/metrics   # Detailed metrics
+make health         # Overall health status
+make ready          # Readiness probe  
+make metrics        # Detailed metrics
+
+# Manual sync operations
+make sync-full      # Trigger full model sync
+make sync-status    # Check sync status
+
+# Kubernetes operations
+make k8s-health     # Check Kubernetes deployment health
+make k8s-sync       # Trigger sync via Kubernetes pod
+make logs           # View pod logs
 
 # Run tests
-npm test
+make test
+
+# Alternative: use curl directly
+curl http://localhost:8080/health
+curl -X POST http://localhost:8080/sync/full
 ```
 
 ## High-Level Architecture
@@ -57,6 +73,7 @@ npm test
 The worker implements a **single-pod design** for model management, providing:
 
 - **Event-driven sync**: SQS triggers model synchronization from S3
+- **Manual sync API**: HTTP endpoints for triggering full model synchronization
 - **Shared storage**: Kubernetes PVC for model sharing with TTS applications
 - **Health monitoring**: Complete health check and monitoring endpoints
 - **Multi-environment support**: Kustomize configurations for dev/prod
@@ -125,6 +142,8 @@ Critical environment variables:
 - **Readiness**: http://localhost:8080/ready  
 - **Liveness**: http://localhost:8080/live
 - **Metrics**: http://localhost:8080/metrics
+- **Manual Full Sync**: POST http://localhost:8080/sync/full
+- **Sync Status**: http://localhost:8080/sync/status
 
 ## Important Notes
 

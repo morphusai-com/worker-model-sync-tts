@@ -1,4 +1,6 @@
 import { ModelSyncService } from './services/ModelSyncService';
+import { ApiService } from './services/ApiService';
+import { HealthCheckService } from './services/HealthCheckService';
 import logger from './utils/logger';
 
 // 處理未捕獲的異常
@@ -14,9 +16,13 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // 優雅關閉處理
 let syncService: ModelSyncService | null = null;
+let apiService: ApiService | null = null;
 
 process.on('SIGTERM', async () => {
   logger.info('Received SIGTERM, shutting down gracefully...');
+  if (apiService) {
+    await apiService.stop();
+  }
   if (syncService) {
     await syncService.stop();
   }
@@ -25,6 +31,9 @@ process.on('SIGTERM', async () => {
 
 process.on('SIGINT', async () => {
   logger.info('Received SIGINT, shutting down gracefully...');
+  if (apiService) {
+    await apiService.stop();
+  }
   if (syncService) {
     await syncService.stop();
   }
@@ -61,7 +70,16 @@ async function main() {
 
     // 建立並啟動同步服務
     syncService = new ModelSyncService();
-    await syncService.start();
+    
+    // 建立並啟動 API 服務
+    const healthService = new HealthCheckService();
+    apiService = new ApiService(syncService, healthService);
+    
+    // 同時啟動兩個服務
+    await Promise.all([
+      syncService.start(),
+      apiService.start()
+    ]);
 
   } catch (error) {
     logger.error(`Failed to start Model Sync Service: ${error.message}`, { error });

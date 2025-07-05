@@ -328,6 +328,101 @@ export class ModelSyncService {
   }
 
   /**
+   * 手動觸發全量同步
+   */
+  async triggerFullSync(): Promise<{
+    success: boolean;
+    totalModels: number;
+    syncedModels: number;
+    errors: string[];
+    duration: number;
+  }> {
+    const startTime = Date.now();
+    const errors: string[] = [];
+    let syncedModels = 0;
+    
+    try {
+      logger.info('🔄 Starting manual full sync...');
+      
+      // 取得所有模型檔案列表
+      const allModels = await this.s3Service.listAllModels();
+      
+      if (allModels.length === 0) {
+        logger.info('ℹ️ No models found in S3 bucket');
+        return {
+          success: true,
+          totalModels: 0,
+          syncedModels: 0,
+          errors: [],
+          duration: Date.now() - startTime
+        };
+      }
+
+      logger.info(`Found ${allModels.length} models in S3, starting sync...`);
+      
+      // 逐一同步模型檔案
+      for (const modelKey of allModels) {
+        try {
+          const localPath = this.getLocalModelPath(modelKey);
+          
+          // 檢查是否需要更新
+          const shouldUpdate = await this.s3Service.shouldUpdateFile(modelKey, localPath);
+          
+          if (shouldUpdate) {
+            logger.info(`🔄 Syncing model: ${modelKey}`);
+            
+            const downloadResult = await this.s3Service.downloadFile(modelKey, localPath);
+            
+            if (downloadResult.success) {
+              syncedModels++;
+              logger.info(`✅ Successfully synced: ${modelKey}`);
+            } else {
+              errors.push(`Failed to download ${modelKey}`);
+              logger.error(`❌ Failed to sync: ${modelKey}`);
+            }
+          } else {
+            logger.debug(`ℹ️ Model already up to date: ${modelKey}`);
+          }
+        } catch (error) {
+          errors.push(`Error syncing ${modelKey}: ${error.message}`);
+          logger.error(`❌ Error syncing model ${modelKey}: ${error.message}`, { error });
+        }
+      }
+      
+      const duration = Date.now() - startTime;
+      const success = errors.length === 0;
+      
+      logger.info(`🏁 Full sync completed`, {
+        totalModels: allModels.length,
+        syncedModels,
+        errors: errors.length,
+        duration,
+        success
+      });
+      
+      return {
+        success,
+        totalModels: allModels.length,
+        syncedModels,
+        errors,
+        duration
+      };
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      logger.error(`❌ Full sync failed: ${error.message}`, { error });
+      
+      return {
+        success: false,
+        totalModels: 0,
+        syncedModels,
+        errors: [error.message],
+        duration
+      };
+    }
+  }
+
+  /**
    * 延遲執行
    */
   private sleep(ms: number): Promise<void> {
