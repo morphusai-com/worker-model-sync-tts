@@ -1,0 +1,51 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: api-voice-tts-core-model-sync-base
+
+# 共用標籤
+commonLabels:
+  app.kubernetes.io/name: api-voice-tts-core
+  app.kubernetes.io/version: "1.0.0"
+  app.kubernetes.io/managed-by: kustomize
+
+# 共用註解
+commonAnnotations:
+  config.kubernetes.io/local-config: "false"
+
+# 資源列表
+resources:
+- namespace.yaml
+- configmap.yaml
+- secret.yaml
+- pvc.yaml
+- rbac.yaml
+- deployment.yaml
+- service.yaml
+
+# 映像標籤
+images:
+- name: api-voice-tts-core/model-sync
+  newTag: latest
+
+# Secret 生成器 (base64 編碼)
+secretGenerator:
+- name: aws-secrets
+  namespace: voice-tts
+  type: Opaque
+  literals:
+  - AWS_ACCESS_KEY_ID=REPLACE_WITH_ACTUAL_KEY
+  - AWS_SECRET_ACCESS_KEY=REPLACE_WITH_ACTUAL_SECRET
+  options:
+    disableNameSuffixHash: true
+
+# 資源修改
+patchesStrategicMerge:
+- |-
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: aws-secrets
+    namespace: voice-tts
+  $patch: delete

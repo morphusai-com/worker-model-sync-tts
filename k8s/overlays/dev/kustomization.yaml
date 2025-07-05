@@ -1,0 +1,63 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: api-voice-tts-core-model-sync-dev
+
+# 繼承 base 配置
+resources:
+- ../../base
+
+# 開發環境命名空間前綴
+namePrefix: dev-
+
+# 開發環境標籤
+commonLabels:
+  environment: development
+  tier: dev
+
+# 開發環境註解
+commonAnnotations:
+  environment: development
+  deployment.kubernetes.io/revision: "dev"
+
+# 映像配置
+images:
+- name: api-voice-tts-core/model-sync
+  newTag: dev-latest
+
+# ConfigMap 修改
+patchesStrategicMerge:
+- configmap-patch.yaml
+
+# Secret 生成器 (開發環境)
+# 注意: 請在部署前設置實際的 AWS 認證資訊
+secretGenerator:
+- name: aws-secrets
+  namespace: voice-tts
+  type: Opaque
+  literals:
+  - AWS_ACCESS_KEY_ID=YOUR_AWS_ACCESS_KEY_ID
+  - AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET_ACCESS_KEY
+  options:
+    disableNameSuffixHash: true
+
+# 資源限制調整 (開發環境較少資源)
+patchesJson6902:
+- target:
+    version: v1
+    kind: Deployment
+    name: model-sync-service
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/memory
+      value: "256Mi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/cpu
+      value: "100m"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/memory
+      value: "1Gi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/cpu
+      value: "500m"

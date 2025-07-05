@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: api-voice-tts-core-models-pvc
+  namespace: voice-tts
+  labels:
+    app.kubernetes.io/name: api-voice-tts-core
+    app.kubernetes.io/component: model-storage
+spec:
+  accessModes:
+    - ReadWriteMany  # 支援多個 Pod 讀寫
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd  # 根據集群調整

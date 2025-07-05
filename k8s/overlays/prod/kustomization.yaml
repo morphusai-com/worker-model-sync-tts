@@ -1,0 +1,68 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: api-voice-tts-core-model-sync-prod
+
+# 繼承 base 配置
+resources:
+- ../../base
+
+# 生產環境標籤
+commonLabels:
+  environment: production
+  tier: prod
+
+# 生產環境註解
+commonAnnotations:
+  environment: production
+  deployment.kubernetes.io/revision: "prod"
+
+# 映像配置
+images:
+- name: api-voice-tts-core/model-sync
+  newTag: "1.0.0"  # 生產環境使用固定版本
+
+# ConfigMap 修改
+patchesStrategicMerge:
+- configmap-patch.yaml
+
+# 生產環境 Secret (使用外部秘鑰管理)
+secretGenerator:
+- name: aws-secrets
+  namespace: voice-tts
+  type: Opaque
+  envs:
+  - aws-credentials.env  # 從檔案載入
+  options:
+    disableNameSuffixHash: true
+
+# 生產環境資源限制
+patchesJson6902:
+- target:
+    version: v1
+    kind: Deployment
+    name: model-sync-service
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/memory
+      value: "1Gi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/cpu
+      value: "500m"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/memory
+      value: "4Gi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/cpu
+      value: "2000m"
+
+# PVC 大小調整
+- target:
+    version: v1
+    kind: PersistentVolumeClaim
+    name: api-voice-tts-core-models-pvc
+  patch: |-
+    - op: replace
+      path: /spec/resources/requests/storage
+      value: "100Gi"

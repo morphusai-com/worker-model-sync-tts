@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: model-sync-config
+  namespace: voice-tts
+data:
+  # 開發環境配置
+  LOG_LEVEL: "debug"
+  NODE_ENV: "development"
+  
+  # 開發環境 SQS 佇列
+  SQS_UPDATE_QUEUE_URL: "https://sqs.us-west-2.amazonaws.com/123456789/dev-model-updates-queue"
+  SQS_NOTIFICATION_QUEUE_URL: "https://sqs.us-west-2.amazonaws.com/123456789/dev-model-notifications-queue"
