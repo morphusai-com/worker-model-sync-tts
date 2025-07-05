@@ -44,37 +44,37 @@ spec:
         - name: AWS_REGION
           valueFrom:
             configMapKeyRef:
-              name: model-sync-config
+              name: worker-model-sync-tts-config
               key: AWS_REGION
         - name: S3_BUCKET_NAME
           valueFrom:
             configMapKeyRef:
-              name: model-sync-config
+              name: worker-model-sync-tts-config
               key: S3_BUCKET_NAME
         - name: MODELS_BASE_PATH
           valueFrom:
             configMapKeyRef:
-              name: model-sync-config
+              name: worker-model-sync-tts-config
               key: MODELS_BASE_PATH
         - name: LOG_LEVEL
           valueFrom:
             configMapKeyRef:
-              name: model-sync-config
+              name: worker-model-sync-tts-config
               key: LOG_LEVEL
         - name: NODE_ENV
           valueFrom:
             configMapKeyRef:
-              name: model-sync-config
+              name: worker-model-sync-tts-config
               key: NODE_ENV
         - name: SQS_UPDATE_QUEUE_URL
           valueFrom:
             configMapKeyRef:
-              name: model-sync-config
+              name: worker-model-sync-tts-config
               key: SQS_UPDATE_QUEUE_URL
         - name: SQS_NOTIFICATION_QUEUE_URL
           valueFrom:
             configMapKeyRef:
-              name: model-sync-config
+              name: worker-model-sync-tts-config
               key: SQS_NOTIFICATION_QUEUE_URL
         # 從 Secret 載入敏感資訊
         - name: AWS_ACCESS_KEY_ID

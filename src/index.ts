@@ -34,7 +34,7 @@ process.on('SIGINT', async () => {
 // 主函數
 async function main() {
   try {
-    logger.info('🚀 Starting Gamania Voice Model Sync Service...');
+    logger.info('🚀 Starting Worker Model Sync TTS Service...');
     
     // 檢查必要的環境變數
     const requiredEnvVars = [
