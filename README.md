@@ -1,5 +1,8 @@
 # Worker Model Sync TTS
 
+[![CI](https://github.com/morphusai-com/worker-model-sync-tts/actions/workflows/ci.yml/badge.svg)](https://github.com/morphusai-com/worker-model-sync-tts/actions/workflows/ci.yml)
+[![Build and Push](https://github.com/morphusai-com/worker-model-sync-tts/actions/workflows/build-and-push.yml/badge.svg)](https://github.com/morphusai-com/worker-model-sync-tts/actions/workflows/build-and-push.yml)
+
 A Kubernetes-native worker service for automatically synchronizing AI models from AWS S3 to local storage, designed for TTS (Text-to-Speech) platforms.
 
 ## 🎯 功能特色
@@ -10,6 +13,7 @@ A Kubernetes-native worker service for automatically synchronizing AI models fro
 - **健康監控**: 完整的健康檢查和監控指標
 - **Kubernetes 原生**: 使用 Kustomize 進行多環境部署
 - **高可靠性**: 自動重試、錯誤處理和故障恢復
+- **CI/CD 整合**: GitHub Actions 自動構建和推送到 AWS ECR
 
 ## 🏗️ 架構設計
 
@@ -49,6 +53,9 @@ worker-model-sync-tts/
 │   └── overlays/              # 環境特定配置
 │       ├── dev/
 │       └── prod/
+├── .github/workflows/         # GitHub Actions
+│   ├── ci.yml                # CI 管道
+│   └── build-and-push.yml    # Docker 構建和推送
 ├── Dockerfile                 # 容器映像
 ├── deploy.sh                  # 部署腳本
 └── package.json               # Node.js 配置
@@ -104,6 +111,40 @@ worker-model-sync-tts/
    ```bash
    ./deploy.sh -e dev -d
    ```
+
+## 🔄 CI/CD 流程
+
+### GitHub Actions Workflows
+
+1. **CI Pipeline** (`.github/workflows/ci.yml`):
+   - 程式碼檢查 (ESLint)
+   - TypeScript 編譯測試
+   - Kubernetes 配置驗證
+
+2. **Build and Push** (`.github/workflows/build-and-push.yml`):
+   - 自動構建 Docker 映像
+   - 推送到 AWS ECR
+   - 安全性掃描 (Trivy)
+   - 支援多架構 (AMD64/ARM64)
+
+### 設定 GitHub Secrets
+
+在 GitHub repository 設定以下 secrets：
+
+```
+AWS_ACCESS_KEY_ID=your_ecr_access_key
+AWS_SECRET_ACCESS_KEY=your_ecr_secret_key
+```
+
+### ECR Repository 設定
+
+在 AWS ECR 中創建 repository：
+
+```bash
+aws ecr create-repository \
+  --repository-name worker-model-sync-tts \
+  --region us-west-2
+```
 
 ## ⚙️ 配置選項
 
@@ -176,7 +217,7 @@ kubectl logs deployment/worker-model-sync-tts -n voice-tts --since=1h
 3. **PVC 掛載問題**
    ```bash
    # 檢查 PVC 狀態
-   kubectl get pvc gamania-voice-models-pvc -n voice-tts
+   kubectl get pvc worker-model-sync-tts-models-pvc -n voice-tts
    ```
 
 ### 除錯模式
