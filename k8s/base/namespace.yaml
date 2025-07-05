@@ -4,5 +4,5 @@ metadata:
   name: voice-tts
   labels:
     name: voice-tts
-    app.kubernetes.io/name: api-voice-tts-core
+    app.kubernetes.io/name: worker-model-sync-tts
     app.kubernetes.io/component: tts-platform

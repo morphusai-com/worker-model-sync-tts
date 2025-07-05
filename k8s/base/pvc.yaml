@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: api-voice-tts-core-models-pvc
+  name: worker-model-sync-tts-models-pvc
   namespace: voice-tts
   labels:
-    app.kubernetes.io/name: api-voice-tts-core
+    app.kubernetes.io/name: worker-model-sync-tts
     app.kubernetes.io/component: model-storage
 spec:
   accessModes:

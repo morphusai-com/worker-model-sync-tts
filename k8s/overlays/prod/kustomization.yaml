@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 metadata:
-  name: api-voice-tts-core-model-sync-prod
+  name: worker-model-sync-tts-prod
 
 # 繼承 base 配置
 resources:
@@ -20,7 +20,7 @@ commonAnnotations:
 
 # 映像配置
 images:
-- name: api-voice-tts-core/model-sync
+- name: worker-model-sync-tts
   newTag: "1.0.0"  # 生產環境使用固定版本
 
 # ConfigMap 修改
@@ -42,7 +42,7 @@ patchesJson6902:
 - target:
     version: v1
     kind: Deployment
-    name: model-sync-service
+    name: worker-model-sync-tts
   patch: |-
     - op: replace
       path: /spec/template/spec/containers/0/resources/requests/memory
@@ -61,7 +61,7 @@ patchesJson6902:
 - target:
     version: v1
     kind: PersistentVolumeClaim
-    name: api-voice-tts-core-models-pvc
+    name: worker-model-sync-tts-models-pvc
   patch: |-
     - op: replace
       path: /spec/resources/requests/storage
