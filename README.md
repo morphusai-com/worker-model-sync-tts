@@ -8,7 +8,7 @@ A Kubernetes-native worker service for automatically synchronizing AI models fro
 ## 🎯 功能特色
 
 - **自動化同步**: 監聽 S3 事件，自動下載和更新模型檔案
-- **智能過濾**: 只處理相關的模型檔案 (.pth, .bin, .onnx 等)
+- **智能過濾**: 處理模型檔案和配置檔案 (.pth, .bin, .onnx, .json, .txt 等)
 - **原子性操作**: 確保檔案更新的一致性和完整性
 - **健康監控**: 完整的健康檢查和監控指標
 - **Kubernetes 原生**: 使用 Kustomize 進行多環境部署

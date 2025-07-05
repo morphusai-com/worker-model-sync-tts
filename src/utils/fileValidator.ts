@@ -7,7 +7,10 @@ export class FileValidator {
    * 檢查檔案是否為模型檔案
    */
   static isModelFile(key: string): boolean {
-    const modelExtensions = ['.pth', '.bin', '.onnx', '.safetensors', '.pkl'];
+    const modelExtensions = [
+      '.pth', '.bin', '.onnx', '.safetensors', '.pkl',
+      '.json', '.txt'  // 新增配置檔案支援
+    ];
     const lowerKey = key.toLowerCase();
     return modelExtensions.some(ext => lowerKey.endsWith(ext));
   }
