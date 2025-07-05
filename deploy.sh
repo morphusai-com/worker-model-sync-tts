@@ -147,21 +147,21 @@ deploy_k8s() {
     
     # 等待部署完成
     echo -e "${YELLOW}⏳ Waiting for deployment to be ready...${NC}"
-    kubectl rollout status deployment/${ENVIRONMENT}-model-sync-service -n voice-tts --timeout=300s
+    kubectl rollout status deployment/worker-model-sync-tts -n voice-tts --timeout=300s
     
     # 顯示部署狀態
     echo -e "${BLUE}📊 Deployment status:${NC}"
-    kubectl get pods -n voice-tts -l app.kubernetes.io/name=model-sync-service
+    kubectl get pods -n voice-tts -l app.kubernetes.io/name=worker-model-sync-tts
     
     # 顯示服務端點
     echo -e "${BLUE}🌐 Service endpoints:${NC}"
-    kubectl get svc -n voice-tts -l app.kubernetes.io/name=model-sync-service
+    kubectl get svc -n voice-tts -l app.kubernetes.io/name=worker-model-sync-tts
 }
 
 # 顯示日誌
 show_logs() {
     echo -e "${BLUE}📝 Recent logs:${NC}"
-    kubectl logs -n voice-tts -l app.kubernetes.io/name=model-sync-service --tail=20
+    kubectl logs -n voice-tts -l app.kubernetes.io/name=worker-model-sync-tts --tail=20
 }
 
 # 主函數

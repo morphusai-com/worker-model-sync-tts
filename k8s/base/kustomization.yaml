@@ -18,7 +18,6 @@ commonAnnotations:
 resources:
 - namespace.yaml
 - configmap.yaml
-- secret.yaml
 - pvc.yaml
 - rbac.yaml
 - deployment.yaml
@@ -29,23 +28,6 @@ images:
 - name: worker-model-sync-tts
   newTag: latest
 
-# Secret 生成器 (base64 編碼)
-secretGenerator:
-- name: aws-secrets
-  namespace: voice-tts
-  type: Opaque
-  literals:
-  - AWS_ACCESS_KEY_ID=REPLACE_WITH_ACTUAL_KEY
-  - AWS_SECRET_ACCESS_KEY=REPLACE_WITH_ACTUAL_SECRET
-  options:
-    disableNameSuffixHash: true
+# Secret 生成器在 overlay 中定義
 
-# 資源修改
-patchesStrategicMerge:
-- |-
-  apiVersion: v1
-  kind: Secret
-  metadata:
-    name: aws-secrets
-    namespace: voice-tts
-  $patch: delete
+# 注意: Secret 由 secretGenerator 生成，不需要額外的 patch

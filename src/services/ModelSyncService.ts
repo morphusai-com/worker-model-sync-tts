@@ -3,7 +3,7 @@ import { S3Service } from './S3Service';
 import { HealthCheckService } from './HealthCheckService';
 import { FileValidator } from '../utils/fileValidator';
 import logger from '../utils/logger';
-import { SQSMessage, S3EventRecord, ModelUpdateEvent, NotificationEvent } from '../types/events';
+import { S3EventRecord, ModelUpdateEvent, NotificationEvent } from '../types/events';
 
 export class ModelSyncService {
   private sqsClient: SQSClient;
@@ -137,7 +137,7 @@ export class ModelSyncService {
    * 處理 S3 事件記錄
    */
   private async handleS3Event(record: S3EventRecord): Promise<void> {
-    const bucket = record.s3.bucket.name;
+    // const bucketName = record.s3.bucket.name;
     const key = record.s3.object.key;
     const eventName = record.eventName;
 

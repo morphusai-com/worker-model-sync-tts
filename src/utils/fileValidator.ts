@@ -71,7 +71,7 @@ export class FileValidator {
   /**
    * 檢查磁碟空間是否足夠
    */
-  static async checkDiskSpace(targetPath: string, requiredBytes: number): Promise<boolean> {
+  static async checkDiskSpace(targetPath: string): Promise<boolean> {
     try {
       // 使用 fs.stat 來檢查檔案系統，簡化實作
       await fs.access(targetPath);

@@ -66,7 +66,7 @@ class FileValidator {
     /**
      * 檢查磁碟空間是否足夠
      */
-    static async checkDiskSpace(targetPath, requiredBytes) {
+    static async checkDiskSpace(targetPath) {
         try {
             // 使用 fs.stat 來檢查檔案系統，簡化實作
             await fs_extra_1.default.access(targetPath);

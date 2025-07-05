@@ -70,7 +70,7 @@ export class S3Service {
       const targetDir = require('path').dirname(localPath);
       await fs.ensureDir(targetDir);
       
-      const hasSpace = await FileValidator.checkDiskSpace(targetDir, objectInfo.size);
+      const hasSpace = await FileValidator.checkDiskSpace(targetDir);
       if (!hasSpace) {
         throw new Error(`Insufficient disk space for download: ${objectInfo.size} bytes required`);
       }

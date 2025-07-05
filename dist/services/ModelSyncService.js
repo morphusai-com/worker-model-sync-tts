@@ -118,7 +118,7 @@ class ModelSyncService {
      * 處理 S3 事件記錄
      */
     async handleS3Event(record) {
-        const bucket = record.s3.bucket.name;
+        // const bucketName = record.s3.bucket.name;
         const key = record.s3.object.key;
         const eventName = record.eventName;
         logger_1.default.info(`Processing S3 event: ${eventName} for ${key}`);

@@ -60,7 +60,7 @@ class S3Service {
             // 檢查本地磁碟空間
             const targetDir = require('path').dirname(localPath);
             await fs_extra_1.default.ensureDir(targetDir);
-            const hasSpace = await fileValidator_1.FileValidator.checkDiskSpace(targetDir, objectInfo.size);
+            const hasSpace = await fileValidator_1.FileValidator.checkDiskSpace(targetDir);
             if (!hasSpace) {
                 throw new Error(`Insufficient disk space for download: ${objectInfo.size} bytes required`);
             }

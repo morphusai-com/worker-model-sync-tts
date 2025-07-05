@@ -22,7 +22,7 @@ export interface SQSMessage {
   ReceiptHandle: string;
   Body: string;
   Attributes?: Record<string, string>;
-  MessageAttributes?: Record<string, any>;
+  MessageAttributes?: Record<string, unknown>;
 }
 
 export interface ModelUpdateEvent {
