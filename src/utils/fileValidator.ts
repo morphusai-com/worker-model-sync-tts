@@ -9,7 +9,8 @@ export class FileValidator {
   static isModelFile(key: string): boolean {
     const modelExtensions = [
       '.pth', '.bin', '.onnx', '.safetensors', '.pkl',
-      '.json', '.txt'  // 新增配置檔案支援
+      '.json', '.txt',  // 配置檔案支援
+      '.py'  // Python 模組支援 (g2pW)
     ];
     const lowerKey = key.toLowerCase();
     return modelExtensions.some(ext => lowerKey.endsWith(ext));
