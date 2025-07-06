@@ -157,9 +157,10 @@ export class ModelSyncService {
     }
 
     // 處理不同的事件類型
-    if (eventName.startsWith('s3:ObjectCreated') || eventName.startsWith('s3:ObjectModified')) {
+    // 注意：實際的事件名稱可能沒有 's3:' 前綴
+    if (eventName.includes('ObjectCreated') || eventName.includes('ObjectModified')) {
       await this.handleModelUpdate(modelEvent);
-    } else if (eventName.startsWith('s3:ObjectRemoved')) {
+    } else if (eventName.includes('ObjectRemoved')) {
       await this.handleModelDeletion(modelEvent);
     } else {
       logger.debug(`Unsupported event type: ${eventName}`);
