@@ -3,7 +3,7 @@
     "target": "es2018",
     "module": "commonjs",
     "lib": ["es2018"],
-    "types": ["node"],
+    "typeRoots": ["./node_modules/@types"],
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": false,
