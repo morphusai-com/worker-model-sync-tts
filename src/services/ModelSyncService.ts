@@ -138,7 +138,8 @@ export class ModelSyncService {
    */
   private async handleS3Event(record: S3EventRecord): Promise<void> {
     // const bucketName = record.s3.bucket.name;
-    const key = record.s3.object.key;
+    const rawKey = record.s3.object.key;
+    const key = decodeURIComponent(rawKey); // 解碼 URL 編碼的檔案路徑
     const eventName = record.eventName;
 
     logger.info(`Processing S3 event: ${eventName} for ${key}`);
@@ -150,7 +151,7 @@ export class ModelSyncService {
     }
 
     // 解析模型事件
-    const modelEvent = this.parseModelEvent(record);
+    const modelEvent = this.parseModelEvent(record, key);
     if (!modelEvent) {
       logger.warn(`Failed to parse model event for: ${key}`);
       return;
@@ -238,10 +239,9 @@ export class ModelSyncService {
   /**
    * 解析模型事件
    */
-  private parseModelEvent(record: S3EventRecord): ModelUpdateEvent | null {
+  private parseModelEvent(record: S3EventRecord, decodedKey: string): ModelUpdateEvent | null {
     try {
-      const key = record.s3.object.key;
-      const pathParts = key.split('/');
+      const pathParts = decodedKey.split('/');
       
       if (pathParts.length < 2) {
         return null;
@@ -251,9 +251,9 @@ export class ModelSyncService {
       const modelType = pathParts[1] as 'bert' | 'voice' | 'g2p' | 'emotional' | 'wavlm';
 
       return {
-        type: record.eventName.startsWith('s3:ObjectRemoved') ? 'model_deleted' : 'model_updated',
+        type: record.eventName.includes('ObjectRemoved') ? 'model_deleted' : 'model_updated',
         bucket: record.s3.bucket.name,
-        key: key,
+        key: decodedKey, // 使用解碼後的 key
         size: record.s3.object.size,
         timestamp: record.eventTime,
         category,
